@@ -1,0 +1,35 @@
+# app/models/company.py
+
+# backend/app/models/company.py
+
+from sqlalchemy import Boolean, Column, Integer, String, Enum, JSON
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql.schema import ForeignKey
+from ..core.database import Base
+import enum
+
+class CompanyType(str, enum.Enum):
+    EMPLOYER = "employer"
+    CREW = "crew"
+    BOTH = "both"
+
+class Company(Base):
+    __tablename__ = "companies"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    type = Column(String, Enum(CompanyType))
+    description = Column(String, nullable=True)
+    location = Column(String)
+    contact_email = Column(String)
+    contact_phone = Column(String, nullable=True)
+    website = Column(String, nullable=True)
+    
+    # Crew-specific fields
+    crew_size = Column(Integer, nullable=True)
+    specialties = Column(JSON, nullable=True)  # Store as JSON array
+    service_area = Column(String, nullable=True)
+    
+    # Relationships
+    users = relationship("User", back_populates="company")  # Relationship to User
+    jobs = relationship("Job", back_populates="company")

@@ -1,0 +1,177 @@
+.post-job-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.post-job-container h2 {
+  margin-bottom: 2rem;
+  color: #333;
+}
+
+.post-job-form {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.post-job-form h2 {
+  color: #2557a7;
+  margin-bottom: 2rem;
+  font-size: 1.8rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #2557a7;
+  box-shadow: 0 0 0 2px rgba(37, 87, 167, 0.1);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+label {
+  font-weight: 500;
+  color: #333;
+}
+
+input, select, textarea {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 200px;
+}
+
+.quill-editor {
+  margin-bottom: 2rem;
+}
+
+.ql-container {
+  min-height: 200px;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.ql-toolbar {
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+}
+
+/* Payment Section Styles */
+.payment-section {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #eee;
+}
+
+.payment-section h3 {
+  color: #333;
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+}
+
+.payment-info {
+  color: #666;
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+}
+
+.card-element-container {
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f8f9fa;
+  margin-bottom: 1.5rem;
+}
+
+.payment-error {
+  color: #dc3545;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.submit-button {
+  background: #2557a7;
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.2s;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: #1e4687;
+}
+
+.submit-button:disabled {
+  background: #a0a0a0;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .post-job-container {
+    padding: 1rem;
+    margin: 1rem;
+  }
+
+  .post-job-form {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+
+  .post-job-form h2 {
+    font-size: 1.5rem;
+  }
+
+  .payment-section h3 {
+    font-size: 1.2rem;
+  }
+
+  .submit-button {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+} 

@@ -1,0 +1,186 @@
+.app-container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-top: 70px; /* Add this to account for fixed header */
+}
+
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Search section */
+.search-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+/* Location selector */
+.location-selector {
+  margin-bottom: 1rem;
+}
+
+.location-selector form {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.location-selector input {
+  width: 150px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.location-selector select {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  background: white;
+  min-width: 180px;
+}
+
+.location-selector button {
+  padding: 12px 24px;
+  background: #2557a7;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.location-selector button:hover {
+  background: #1e4687;
+}
+
+.location-selector input:disabled,
+.location-selector select:disabled,
+.location-selector button:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.location-selector input:disabled::placeholder {
+    color: #666;
+}
+
+/* Loading state */
+.loading {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #666;
+}
+
+.loading h3 {
+  margin: 0;
+  color: #2557a7;
+}
+
+/* Filters */
+.filters {
+  margin-top: 1rem;
+}
+
+.filters .function-filter {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  width: 200px;
+  font-size: 1rem;
+}
+
+/* Jobs container */
+.jobs-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 1.5rem;
+}
+
+.no-jobs {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #666;
+}
+
+.no-jobs h3 {
+  margin: 0 0 1rem;
+  color: #333;
+}
+
+/* Error message */
+.error-message {
+    text-align: center;
+    padding: 2rem;
+    background: #fff3f3;
+    border-radius: 8px;
+    border: 1px solid #ffcdd2;
+}
+
+.error-message h3 {
+    color: #d32f2f;
+    margin-bottom: 0.5rem;
+}
+
+.error-message p {
+    color: #666;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+  }
+
+  .search-section {
+    padding: 1rem;
+  }
+
+  /* Keep location selector on one line for mobile */
+  .location-selector form {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+  }
+
+  .location-selector input {
+    width: 90px;
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  .location-selector select {
+    width: 90px;
+    min-width: 0;
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  .location-selector button {
+    padding: 8px;
+    font-size: 0.9rem;
+    min-width: 90px;
+  }
+
+  /* Adjust filter for mobile */
+  .filters {
+    margin-top: 0.75rem;
+  }
+
+  .filters .function-filter {
+    width: 100%;
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+}

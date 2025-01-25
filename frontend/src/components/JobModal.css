@@ -1,0 +1,220 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  line-height: 1;
+  color: #666;
+  transition: color 0.2s;
+}
+
+.modal-close:hover {
+  color: #333;
+}
+
+.modal-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h2 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.8rem;
+}
+
+.application-section {
+  margin: 1.5rem 0;
+}
+
+.application-section h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.application-methods {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.apply-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.2rem;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  font-size: 0.95rem;
+}
+
+.apply-button i {
+  font-size: 1.1rem;
+}
+
+.apply-button.email {
+  background: #2557a7;
+  color: white;
+}
+
+.apply-button.email:hover {
+  background: #1e4687;
+}
+
+.apply-button.external {
+  background: #28a745;
+  color: white;
+}
+
+.apply-button.external:hover {
+  background: #218838;
+}
+
+.apply-button.company {
+  background: #6c757d;
+  color: white;
+}
+
+.apply-button.company:hover {
+  background: #5a6268;
+}
+
+.job-meta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.job-meta p {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #495057;
+  font-size: 0.95rem;
+}
+
+.job-meta i {
+  color: #6c757d;
+}
+
+.job-description {
+  margin-bottom: 2rem;
+}
+
+.job-description h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+}
+
+.company-link {
+  color: #2557a7;
+  text-decoration: none;
+}
+
+.company-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    padding: 1.5rem;
+  }
+  
+  .modal-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .application-methods {
+    flex-direction: column;
+  }
+  
+  .apply-button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .job-meta {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+
+.formatted-description {
+  line-height: 1.6;
+}
+
+.formatted-description ul, 
+.formatted-description ol {
+  padding-left: 1.5rem;
+  margin: 1rem 0;
+}
+
+.formatted-description li {
+  margin: 0.5rem 0;
+}
+
+.formatted-description p {
+  margin: 1rem 0;
+}
+
+.formatted-description h1,
+.formatted-description h2,
+.formatted-description h3,
+.formatted-description h4 {
+  margin: 1.5rem 0 1rem;
+}
+
+.formatted-description a {
+  color: #2557a7;
+  text-decoration: none;
+}
+
+.formatted-description a:hover {
+  text-decoration: underline;
+}
+
+.job-meta .job-function {
+  background: #e8f4ff;
+  color: #2557a7;
+  border: 1px solid #d1e8ff;
+} 

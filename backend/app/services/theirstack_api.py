@@ -10,12 +10,15 @@ from ..core.config import settings
 from ..utils.location_utils import get_coordinates_from_zip as get_coordinates
 from ..utils.html_utils import sanitize_html
 from ..utils.job_classifier import classify_job_function
+import re
+from pgeocode import Nominatim
+import pandas as pd
 
 # Use settings directly - remove load_dotenv() call
 THEIRSTACK_API_URL = settings.THEIRSTACK_API_URL
 THEIRSTACK_API_KEY = settings.THEIRSTACK_API_KEY
 
-def fetch_roofing_jobs(page: int = 0, limit: int = 2) -> List[Dict[Any, Any]]:
+def fetch_roofing_jobs(page: int = 0, limit: int = 1) -> List[Dict[Any, Any]]:
     """Fetch jobs from TheirStack API"""
     print(f"\nAPI Key present: {bool(THEIRSTACK_API_KEY)}")
     print(f"API Key value: {THEIRSTACK_API_KEY[:5]}..." if THEIRSTACK_API_KEY else "No API Key")
@@ -92,41 +95,50 @@ def fetch_roofing_jobs(page: int = 0, limit: int = 2) -> List[Dict[Any, Any]]:
 def map_job_data(job_data: Dict[str, Any]) -> Dict[str, Any]:
     """Map TheirStack job data to our schema"""
     try:
-        print(f"\nMapping job: {job_data.get('title')}")
+        print(f"\nMapping job: {job_data.get('job_title')}")
         
-        # Get location details and handle postal code
+        # Get location data from API fields
         location = job_data.get("long_location", "")
-        postal_code = None
+        print(f"Raw location: {location}")
         
-        # Try to extract postal code from various location fields
-        location_fields = [
-            job_data.get("long_location", ""),
-            job_data.get("location", ""),
-            job_data.get("city", "")
-        ]
-        
-        for field in location_fields:
-            if field:
-                # Look for 5-digit numbers
-                import re
-                zip_matches = re.findall(r'\b\d{5}\b', field)
-                if zip_matches:
-                    postal_code = zip_matches[0]
-                    break
-        
-        # Get coordinates for the postal code
-        latitude = None
-        longitude = None
-        if postal_code:
-            print(f"Found postal code: {postal_code}")
-            coords = get_coordinates(postal_code)
-            if coords:
-                latitude, longitude = coords
-                print(f"Got coordinates: ({latitude}, {longitude})")
+        # Parse city and state from long_location (e.g., "Greenville, SC")
+        city = None
+        state = None
+        if location and "," in location:
+            parts = [part.strip() for part in location.split(",")]
+            if len(parts) == 2:
+                city = parts[0]
+                state = parts[1]
+                if len(state) == 2:  # Validate state code
+                    print(f"Successfully parsed - City: {city}, State: {state}")
+                    
+                    # Get coordinates using pgeocode
+                    try:
+                        import pgeocode
+                        nomi = pgeocode.Nominatim('us')
+                        query = f"{city}, {state}"
+                        print(f"Querying location: {query}")
+                        data = nomi.query_location(query)
+                        
+                        if isinstance(data, pd.Series):
+                            if not pd.isna(data.latitude) and not pd.isna(data.longitude):
+                                latitude = float(data.latitude)
+                                longitude = float(data.longitude)
+                                print(f"✓ Got coordinates: ({latitude}, {longitude})")
+                            else:
+                                print("✗ No coordinates found in response")
+                        else:
+                            print("✗ Invalid response format from geocoder")
+                    except Exception as e:
+                        print(f"✗ Error getting coordinates: {str(e)}")
+                        latitude = None
+                        longitude = None
+                else:
+                    print(f"✗ Invalid state code format: {state}")
             else:
-                print(f"Could not get coordinates for postal code: {postal_code}")
+                print("✗ Could not parse city and state from location")
         else:
-            print("No postal code found in location data")
+            print("✗ Location string does not contain city and state")
         
         # Get the description and clean up the markdown
         description = job_data.get("description", "")
@@ -143,21 +155,17 @@ def map_job_data(job_data: Dict[str, Any]) -> Dict[str, Any]:
         # Sanitize the HTML
         sanitized_description = sanitize_html(html_description)
         
+        # Map the rest of the data
         mapped_data = {
             "external_id": str(job_data.get("id")),
             "job_title": job_data.get("job_title"),
             "description": sanitized_description,
-            "job_category": job_data.get("employment_type", ""),
             "location": location,
-            "postal_code": postal_code,
-            "latitude": latitude,
-            "longitude": longitude,
-            "employment_type": job_data.get("employment_type"),
-            "remote_type": job_data.get("remote_type"),
-            "company_url": job_data.get("company_url"),
-            "source_url": job_data.get("source_url"),
-            "application_link": job_data.get("apply_url") or job_data.get("source_url"),
-            "application_email": job_data.get("apply_email"),
+            "city": city,
+            "state": state,
+            "latitude": latitude if 'latitude' in locals() else None,
+            "longitude": longitude if 'longitude' in locals() else None,
+            "application_link": job_data.get("source_url"),
             "posted_date": datetime.fromisoformat(job_data.get("date_posted")),
             "is_active": True,
             "job_function": classify_job_function(job_data.get("job_title"))
@@ -168,7 +176,7 @@ def map_job_data(job_data: Dict[str, Any]) -> Dict[str, Any]:
         
     except Exception as e:
         print(f"Error mapping job data: {str(e)}")
-        raise e
+        raise
 
 def sync_jobs():
     """Fetch jobs from TheirStack and sync to our database"""

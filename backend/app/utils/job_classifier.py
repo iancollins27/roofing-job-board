@@ -1,67 +1,46 @@
 import os
-import openai
-from typing import Optional
-from ..models.job_model import JobFunction
-from dotenv import load_dotenv
+from openai import OpenAI
 
-load_dotenv()
-
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-def classify_job_function(job_title: str) -> Optional[JobFunction]:
+def classify_job_function(job_title: str) -> str | None:
     """
-    Use OpenAI to classify a job title into one of our JobFunction categories.
-    
-    Args:
-        job_title (str): The job title to classify
-        
-    Returns:
-        JobFunction: The classified job function or None if classification fails
+    Classifies a job title into predefined categories using OpenAI's API.
+    Returns None if classification fails.
     """
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        print("OPENAI_API_KEY not found in environment variables")
+        return None
+
     try:
-        print("\n" + "="*50)  # Separator for better readability
-        print(f"Processing Job Title: {job_title}")
-        print("="*50)
+        # Initialize the client with the API key
+        client = OpenAI(api_key=api_key)
         
-        prompt = f"""Classify the following roofing industry job title into exactly one of these categories:
-- SALES: Sales, Business Development, Account Management roles
-- LABOR: Hands-on roofing work, installation, repair
-- PRODUCTION: Production, project management
-- MANAGEMENT: Supervisory, project management, leadership roles
-
-Job Title: {job_title}
-
-Return only one word in uppercase from the above categories (SALES, LABOR, PRODUCTION, or MANAGEMENT)."""
-
-        print(f"OpenAI API Key present: {bool(openai.api_key)}")
-        
-        response = openai.ChatCompletion.create(
+        # Create the chat completion using the new API syntax
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a job classification assistant. Respond with exactly one word from the allowed categories."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a job title classifier for the roofing industry. "
+                        "Classify the job title into one of these categories: "
+                        "SALES, LABOR, PRODUCTION, MANAGEMENT. "
+                        "Return only the category name in all caps."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": f"Classify this job title: {job_title}"
+                }
             ],
-            temperature=0.0,
-            max_tokens=20
+            max_tokens=10,
+            temperature=0
         )
-
-        # Print the full response for debugging
-        print("\nOpenAI Response:")
-        print(f"Raw response: {response}")
-        print(f"Content: {response.choices[0].message.content}")
         
-        classification = response.choices[0].message.content.strip().upper()
-        print(f"\nProcessed Classification: {classification}")
-        
-        if classification in JobFunction.__members__:
-            print(f"✓ Successfully classified as: {classification}")
-            return JobFunction[classification]
-        
-        print(f"✗ Error: Classification '{classification}' not in valid options: {list(JobFunction.__members__.keys())}")
-        return None
-        
+        return response.choices[0].message.content.strip()
+    
     except Exception as e:
-        print(f"\n✗ Error classifying job title:")
+        print(f"Error classifying job title:")
         print(f"Error message: {str(e)}")
         print(f"Error type: {type(e)}")
-        return None 
+        return None

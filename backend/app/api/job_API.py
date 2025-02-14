@@ -48,7 +48,11 @@ def read_job(job_id: int, db: Session = Depends(get_db_session)):
 @router.get("/", response_model=list[JobResponse])
 def read_jobs(db: Session = Depends(get_db_session)):
     try:
-        jobs = db.query(Job).all()
+        # Order by external_id IS NOT NULL (puts NULL values first), then by posted_date DESC
+        jobs = db.query(Job).order_by(
+            Job.external_id.is_not(None),  # NULL (manually posted) jobs first
+            Job.posted_date.desc()  # Then by most recent
+        ).all()
         print(f"\nFetching all jobs from database:")
         print(f"Found {len(jobs)} jobs")
         for job in jobs:

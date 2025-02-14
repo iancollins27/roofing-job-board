@@ -1,6 +1,7 @@
 // src/App.js
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import ReactGA from 'react-ga';
 import JobList from './components/JobList';
 import Filters from './components/Filters';
 import LocationSelector from './components/LocationSelector';
@@ -10,6 +11,16 @@ import PostJobForm from './components/PostJobForm';
 import PostJobLanding from './components/PostJobLanding';
 import PostJobSuccess from './components/PostJobSuccess';
 import './app.css';
+
+const TrackPageViews = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    ReactGA.pageview(location.pathname + location.search);
+  }, [location]);
+
+  return null;
+};
 
 const HomePage = ({ jobs, filteredJobs, handleFilterChange, handleLocationChange, handleJobClick, error, isLoading }) => (
     <main className="main-content">
@@ -123,6 +134,7 @@ const App = () => {
 
     return (
         <Router>
+            <TrackPageViews />
             <div className="app-container">
                 <Header />
                 <Routes>

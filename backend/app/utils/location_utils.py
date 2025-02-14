@@ -1,22 +1,33 @@
 from typing import Optional, Tuple
 from math import radians, sin, cos, sqrt, atan2
 import logging
-import pgeocode
+import requests
+from ..core.config import settings
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize the geocoder once (it loads a small database into memory)
-nomi = pgeocode.Nominatim('us')
-
 def get_coordinates_from_zip(zip_code: str) -> Optional[Tuple[float, float]]:
-    """Get latitude and longitude from a ZIP code using local database."""
+    """Get latitude and longitude from a ZIP code using Google Geocoding API."""
     try:
         logger.info(f"Looking up ZIP: {zip_code}")
-        location = nomi.query_postal_code(zip_code)
         
-        if location is not None and not (location.latitude != location.latitude):  # Check for NaN
-            lat, lon = location.latitude, location.longitude
+        # Build the Google Geocoding API URL
+        base_url = "https://maps.googleapis.com/maps/api/geocode/json"
+        params = {
+            "address": zip_code,
+            "components": "country:US|postal_code:" + zip_code,
+            "key": settings.GOOGLE_MAPS_API_KEY
+        }
+        
+        # Make the API request
+        response = requests.get(base_url, params=params)
+        response.raise_for_status()
+        data = response.json()
+        
+        if data["status"] == "OK" and data["results"]:
+            location = data["results"][0]["geometry"]["location"]
+            lat, lon = location["lat"], location["lng"]
             logger.info(f"Found coordinates for ZIP {zip_code}: ({lat}, {lon})")
             return (float(lat), float(lon))
         
@@ -25,6 +36,56 @@ def get_coordinates_from_zip(zip_code: str) -> Optional[Tuple[float, float]]:
         
     except Exception as e:
         logger.error(f"Error looking up ZIP {zip_code}: {str(e)}")
+        return None
+
+def get_coordinates_from_address(address: str) -> Optional[Tuple[float, float]]:
+    """Get latitude and longitude from an address string using Google Geocoding API."""
+    try:
+        logger.info(f"Looking up address: {address}")
+        
+        # Verify API key is not empty
+        if not settings.GOOGLE_MAPS_API_KEY:
+            logger.error("Google Maps API key is not set")
+            return None
+        
+        # Build the Google Geocoding API URL
+        base_url = "https://maps.googleapis.com/maps/api/geocode/json"
+        params = {
+            "address": address,
+            "components": "country:US",
+            "key": settings.GOOGLE_MAPS_API_KEY
+        }
+        
+        # Debug info
+        logger.info(f"Using Google Maps API Key: {settings.GOOGLE_MAPS_API_KEY[:10]}...")
+        
+        # Make the API request
+        response = requests.get(base_url, params=params)
+        
+        # Log the full URL for debugging (with key partially redacted)
+        debug_url = response.url.replace(settings.GOOGLE_MAPS_API_KEY, settings.GOOGLE_MAPS_API_KEY[:10] + "...")
+        logger.info(f"Request URL: {debug_url}")
+        
+        response.raise_for_status()
+        data = response.json()
+        
+        # Debug response
+        logger.info(f"Google API Response Status: {data.get('status')}")
+        if data.get('error_message'):
+            logger.error(f"Google API Error: {data.get('error_message')}")
+        logger.info(f"Full Response: {data}")
+        
+        if data["status"] == "OK" and data["results"]:
+            location = data["results"][0]["geometry"]["location"]
+            lat, lon = location["lat"], location["lng"]
+            logger.info(f"Found coordinates for address {address}: ({lat}, {lon})")
+            return (float(lat), float(lon))
+        
+        logger.error(f"No location found for address: {address}")
+        return None
+        
+    except Exception as e:
+        logger.error(f"Error looking up address {address}: {str(e)}")
         return None
 
 def calculate_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:

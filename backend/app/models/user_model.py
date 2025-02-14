@@ -14,6 +14,3 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
     
-    # Foreign key for company association
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=True)  # Nullable for individual users
-    company = relationship("Company", back_populates="users")  # Relationship to Company

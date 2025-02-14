@@ -18,7 +18,7 @@ import pandas as pd
 THEIRSTACK_API_URL = settings.THEIRSTACK_API_URL
 THEIRSTACK_API_KEY = settings.THEIRSTACK_API_KEY
 
-def fetch_roofing_jobs(page: int = 0, limit: int = 1) -> List[Dict[Any, Any]]:
+def fetch_roofing_jobs(page: int = 0, limit: int = 5) -> List[Dict[Any, Any]]:
     """Fetch jobs from TheirStack API"""
     print(f"\nAPI Key present: {bool(THEIRSTACK_API_KEY)}")
     print(f"API Key value: {THEIRSTACK_API_KEY[:5]}..." if THEIRSTACK_API_KEY else "No API Key")
@@ -101,40 +101,48 @@ def map_job_data(job_data: Dict[str, Any]) -> Dict[str, Any]:
         location = job_data.get("long_location", "")
         print(f"Raw location: {location}")
         
-        # Parse city and state from long_location (e.g., "Greenville, SC")
+        # Parse city and state from long_location (e.g., "New Orleans, LA 70163")
         city = None
         state = None
+        latitude = None
+        longitude = None
+        
         if location and "," in location:
             parts = [part.strip() for part in location.split(",")]
             if len(parts) == 2:
                 city = parts[0]
-                state = parts[1]
-                if len(state) == 2:  # Validate state code
-                    print(f"Successfully parsed - City: {city}, State: {state}")
-                    
-                    # Get coordinates using pgeocode
-                    try:
-                        import pgeocode
-                        nomi = pgeocode.Nominatim('us')
-                        query = f"{city}, {state}"
-                        print(f"Querying location: {query}")
-                        data = nomi.query_location(query)
+                # Split the second part to separate state from ZIP if present
+                state_parts = parts[1].strip().split()
+                if state_parts:
+                    state = state_parts[0]  # Take just the state code
+                    if len(state) == 2:  # Validate state code
+                        print(f"Successfully parsed - City: {city}, State: {state}")
                         
-                        if isinstance(data, pd.Series):
-                            if not pd.isna(data.latitude) and not pd.isna(data.longitude):
-                                latitude = float(data.latitude)
-                                longitude = float(data.longitude)
+                        # Get coordinates using Google Geocoding API
+                        try:
+                            from ..utils.location_utils import get_coordinates_from_address
+                            address = f"{city}, {state}, USA"
+                            coords = get_coordinates_from_address(address)
+                            
+                            if coords:
+                                latitude, longitude = coords
                                 print(f"✓ Got coordinates: ({latitude}, {longitude})")
                             else:
-                                print("✗ No coordinates found in response")
-                        else:
-                            print("✗ Invalid response format from geocoder")
-                    except Exception as e:
-                        print(f"✗ Error getting coordinates: {str(e)}")
-                        latitude = None
-                        longitude = None
-                else:
-                    print(f"✗ Invalid state code format: {state}")
+                                print("✗ No coordinates found from geocoding service")
+                                # Try using the coordinates from TheirStack if available
+                                if job_data.get("latitude") and job_data.get("longitude"):
+                                    latitude = float(job_data["latitude"])
+                                    longitude = float(job_data["longitude"])
+                                    print(f"✓ Using TheirStack coordinates: ({latitude}, {longitude})")
+                        except Exception as e:
+                            print(f"✗ Error getting coordinates: {str(e)}")
+                            # Fallback to TheirStack coordinates
+                            if job_data.get("latitude") and job_data.get("longitude"):
+                                latitude = float(job_data["latitude"])
+                                longitude = float(job_data["longitude"])
+                                print(f"✓ Using TheirStack coordinates as fallback: ({latitude}, {longitude})")
+                    else:
+                        print(f"✗ Invalid state code format: {state}")
             else:
                 print("✗ Could not parse city and state from location")
         else:
@@ -163,8 +171,8 @@ def map_job_data(job_data: Dict[str, Any]) -> Dict[str, Any]:
             "location": location,
             "city": city,
             "state": state,
-            "latitude": latitude if 'latitude' in locals() else None,
-            "longitude": longitude if 'longitude' in locals() else None,
+            "latitude": latitude,
+            "longitude": longitude,
             "application_link": job_data.get("source_url"),
             "posted_date": datetime.fromisoformat(job_data.get("date_posted")),
             "is_active": True,
@@ -183,7 +191,7 @@ def sync_jobs():
     session = next(get_db_session())
     try:
         print("\nStarting job sync...")
-        jobs_data = fetch_roofing_jobs()
+        jobs_data = fetch_roofing_jobs(limit=1)  # Changed limit to 1 for testing
         print(f"\nFetched {len(jobs_data)} jobs from TheirStack")
         
         synced_count = 0

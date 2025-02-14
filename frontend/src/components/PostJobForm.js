@@ -79,7 +79,7 @@ const PostJobForm = () => {
     application_email: '',
     application_link: '',
     company_url: '',
-    job_function: 'LABOR' // Changed default value to match enum
+    job_function: 'labor' // Changed to lowercase to match backend enum
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -121,7 +121,7 @@ const PostJobForm = () => {
         throw new Error(errorData.detail || 'Payment failed');
       }
       
-      const { client_secret } = await paymentResponse.json();
+      await paymentResponse.json();  // We still need to consume the response
 
       // Then create the job
       const jobResponse = await fetch('http://localhost:8000/api/v1/jobs', {
@@ -132,7 +132,7 @@ const PostJobForm = () => {
 
       if (!jobResponse.ok) {
         const errorData = await jobResponse.json();
-        throw new Error(errorData.detail || 'Failed to create job');
+        throw new Error(errorData.detail || JSON.stringify(errorData) || 'Failed to create job');
       }
       
       // Redirect to success page
@@ -212,10 +212,10 @@ const PostJobForm = () => {
               onChange={handleChange}
               required
             >
-              <option value="SALES">Sales</option>
-              <option value="LABOR">Labor</option>
-              <option value="PRODUCTION">Production</option>
-              <option value="MANAGEMENT">Management</option>
+              <option value="sales">Sales</option>
+              <option value="labor">Labor</option>
+              <option value="production">Production</option>
+              <option value="management">Management</option>
             </select>
           </div>
 

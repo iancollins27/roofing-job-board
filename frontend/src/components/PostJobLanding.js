@@ -34,10 +34,6 @@ const PostJobLanding = () => {
               </li>
               <li>
                 <i className="fas fa-check"></i>
-                Real-time application tracking
-              </li>
-              <li>
-                <i className="fas fa-check"></i>
                 Premium job board placement
               </li>
             </ul>
@@ -55,18 +51,24 @@ const PostJobLanding = () => {
         <div className="trust-signals">
           <div className="trust-item">
             <i className="fas fa-bolt"></i>
-            <h4>Quick Setup</h4>
-            <p>Post your job in minutes</p>
+            <div className="trust-text">
+              <h4>Quick Setup</h4>
+              <p>Post your job in minutes</p>
+            </div>
           </div>
           <div className="trust-item">
             <i className="fas fa-shield-alt"></i>
-            <h4>Secure Payment</h4>
-            <p>Protected by Stripe</p>
+            <div className="trust-text">
+              <h4>Secure Payment</h4>
+              <p>Protected by Stripe</p>
+            </div>
           </div>
           <div className="trust-item">
             <i className="fas fa-chart-line"></i>
-            <h4>Wide Reach</h4>
-            <p>Target qualified candidates</p>
+            <div className="trust-text">
+              <h4>Wide Reach</h4>
+              <p>Target qualified candidates</p>
+            </div>
           </div>
         </div>
       </div>

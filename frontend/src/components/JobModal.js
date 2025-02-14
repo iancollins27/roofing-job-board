@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import './JobModal.css';
-import { trackJobView, trackJobApplication } from '../utils/analytics';
+import { trackJobView } from '../utils/analytics';
+import ReactGA from 'react-ga';
 
 const JobModal = ({ job, onClose }) => {
   useEffect(() => {
@@ -17,7 +18,11 @@ const JobModal = ({ job, onClose }) => {
   };
 
   const handleApplyClick = (method) => {
-    trackJobApplication(job, method);
+    ReactGA.event({
+      category: 'Job Application',
+      action: 'Click Apply',
+      label: `${method} - ${job.title}`
+    });
     
     switch(method) {
       case 'email':

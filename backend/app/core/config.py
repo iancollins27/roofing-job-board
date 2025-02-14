@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     THEIRSTACK_API_URL: str = "https://api.theirstack.com/v1/jobs/search"
     OPENAI_API_KEY: str = os.getenv('OPENAI_API_KEY', '')
     STRIPE_SECRET_KEY: str = os.getenv('STRIPE_SECRET_KEY', '')
+    GOOGLE_MAPS_API_KEY: str = os.getenv('GOOGLE_MAPS_API_KEY', '')
     
     # JWT settings
     SECRET_KEY: str = "your-secret-key-here"

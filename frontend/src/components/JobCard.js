@@ -43,7 +43,9 @@ const JobCard = ({ job, onClick }) => {
   return (
     <div className="job-card" onClick={() => onClick(job)}>
       <div className="job-card-header">
-        <h3 className="job-title">{job.job_title}</h3>
+        <div className="title-section">
+          <h3 className="job-title">{job.job_title}</h3>
+        </div>
         {job.posted_date && (
           <span className="posted-date">{formatDate(job.posted_date)}</span>
         )}
@@ -82,6 +84,10 @@ const JobCard = ({ job, onClick }) => {
       
       <div className="card-arrow">
         <i className="fas fa-chevron-right"></i>
+      </div>
+
+      <div className="job-card-content">
+        <p className="job-description-preview">{getDescriptionPreview()}</p>
       </div>
     </div>
   );

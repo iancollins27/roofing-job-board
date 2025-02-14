@@ -12,5 +12,5 @@ class Company(Base):
     is_active = Column(Boolean, default=True)
     
     # Relationships
-    users = relationship("User", back_populates="company")
+    # users = relationship("User", back_populates="company")  # Commented out until User model is needed
     jobs = relationship("Job", back_populates="company") 

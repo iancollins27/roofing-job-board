@@ -17,6 +17,9 @@ load_dotenv(ENV_PATH)
 
 # Debug database connection
 db_url = os.getenv('DATABASE_URL', '')
+if db_url and db_url.startswith('postgres://'):
+    db_url = db_url.replace('postgres://', 'postgresql://', 1)
+
 print("\nDatabase Connection Debug:")
 print(f"1. Found DATABASE_URL in env: {'Yes' if db_url else 'No'}")
 if db_url:
@@ -32,7 +35,7 @@ if not os.getenv('THEIRSTACK_API_KEY'):
 
 class Settings(BaseSettings):
     # Database settings
-    DATABASE_URL: str = os.getenv('DATABASE_URL')
+    DATABASE_URL: str = db_url
     
     # API settings
     THEIRSTACK_API_KEY: str = os.getenv('THEIRSTACK_API_KEY')

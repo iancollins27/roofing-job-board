@@ -191,7 +191,7 @@ def sync_jobs():
     session = next(get_db_session())
     try:
         print("\nStarting job sync...")
-        jobs_data = fetch_roofing_jobs(limit=1)  # Changed limit to 1 for testing
+        jobs_data = fetch_roofing_jobs(limit=3)  # Changed limit to 1 for testing
         print(f"\nFetched {len(jobs_data)} jobs from TheirStack")
         
         synced_count = 0

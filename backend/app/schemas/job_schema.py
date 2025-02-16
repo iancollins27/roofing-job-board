@@ -6,10 +6,12 @@ from datetime import datetime
 from enum import Enum
 
 class JobFunction(str, Enum):
-    SALES = "sales"
-    LABOR = "labor"
-    PRODUCTION = "production"
-    MANAGEMENT = "management"
+    SALES = "Sales"
+    INSTALLATION = "Installation"
+    PROJECT_MANAGEMENT = "Project Management"
+    GENERAL_LABOR = "General Labor"
+    ADMINISTRATIVE = "Administrative"
+    OTHER = "Other"
 
 class JobCreate(BaseModel):
     external_id: Optional[str] = None
@@ -43,3 +45,13 @@ class JobResponse(JobCreate):
     class Config:
         orm_mode = True
         from_attributes = True  # For newer Pydantic versions
+
+class PaginatedJobResponse(BaseModel):
+    items: List[JobResponse]
+    total: int
+    skip: int
+    limit: int
+
+    class Config:
+        orm_mode = True
+        from_attributes = True

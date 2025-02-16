@@ -1,5 +1,5 @@
 // src/App.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import ReactGA from 'react-ga';
 import JobList from './components/JobList';
@@ -22,7 +22,7 @@ const TrackPageViews = () => {
   return null;
 };
 
-const HomePage = ({ jobs, filteredJobs, handleFilterChange, handleLocationChange, handleJobClick, error, isLoading }) => (
+const HomePage = ({ jobs, filteredJobs, handleFilterChange, handleLocationChange, handleJobClick, error, isLoading, hasMore, onLoadMore }) => (
     <main className="main-content">
         <div className="search-section">
             <LocationSelector onLocationChange={handleLocationChange} />
@@ -34,17 +34,14 @@ const HomePage = ({ jobs, filteredJobs, handleFilterChange, handleLocationChange
                     <h3>Unable to connect to job server</h3>
                     <p>Please try again later. The server might be temporarily down.</p>
                 </div>
-            ) : isLoading ? (
-                <div className="loading">
-                    <h3>Searching for jobs...</h3>
-                </div>
-            ) : filteredJobs.length > 0 ? (
-                <JobList jobs={filteredJobs} onJobClick={handleJobClick} />
             ) : (
-                <div className="no-jobs">
-                    <h3>No jobs available at the moment</h3>
-                    <p>Please check back later or try adjusting your search criteria.</p>
-                </div>
+                <JobList 
+                    jobs={filteredJobs} 
+                    onJobClick={handleJobClick}
+                    isLoading={isLoading}
+                    hasMore={hasMore}
+                    onLoadMore={onLoadMore}
+                />
             )}
         </div>
     </main>
@@ -56,37 +53,56 @@ const App = () => {
     const [selectedJob, setSelectedJob] = useState(null);
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [page, setPage] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const JOBS_PER_PAGE = 25;
+
+    const fetchJobs = useCallback(async (pageToFetch = 0) => {
+        setIsLoading(true);
+        try {
+            console.log("Fetching jobs from API...");
+            const skip = pageToFetch * JOBS_PER_PAGE;
+            const response = await fetch(`http://localhost:8000/api/v1/jobs?skip=${skip}&limit=${JOBS_PER_PAGE}`);
+            console.log("Response status:", response.status);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log("Fetched jobs:", data);
+            
+            if (pageToFetch === 0) {
+                setJobs(data.items);
+                setFilteredJobs(data.items);
+            } else {
+                setJobs(prevJobs => [...prevJobs, ...data.items]);
+                setFilteredJobs(prevJobs => [...prevJobs, ...data.items]);
+            }
+            
+            setHasMore(data.items.length === JOBS_PER_PAGE);
+            setError(null);
+        } catch (error) {
+            console.error('Error fetching jobs:', error);
+            setError(error.message);
+            setJobs([]);
+            setFilteredJobs([]);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
-        const fetchJobs = async () => {
-            setIsLoading(true);
-            try {
-                console.log("Fetching jobs from API...");
-                const response = await fetch('http://localhost:8000/api/v1/jobs');
-                console.log("Response status:", response.status);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                console.log("Fetched jobs:", data);
-                
-                setJobs(data);
-                setFilteredJobs(data);
-                setError(null);
-            } catch (error) {
-                console.error('Error fetching jobs:', error);
-                setError(error.message);
-                setJobs([]);
-                setFilteredJobs([]);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+        fetchJobs(0);
+    }, [fetchJobs]);
 
-        fetchJobs();
-    }, []);
+    const handleLoadMore = useCallback(() => {
+        if (!isLoading && hasMore) {
+            const nextPage = page + 1;
+            setPage(nextPage);
+            fetchJobs(nextPage);
+        }
+    }, [fetchJobs, isLoading, hasMore, page]);
 
     const handleFilterChange = (jobFunction) => {
         if (!jobFunction) {
@@ -138,17 +154,22 @@ const App = () => {
             <div className="app-container">
                 <Header />
                 <Routes>
-                    <Route path="/" element={
-                        <HomePage 
-                            jobs={jobs}
-                            filteredJobs={filteredJobs}
-                            handleFilterChange={handleFilterChange}
-                            handleLocationChange={handleLocationChange}
-                            handleJobClick={handleJobClick}
-                            error={error}
-                            isLoading={isLoading}
-                        />
-                    } />
+                    <Route 
+                        path="/" 
+                        element={
+                            <HomePage 
+                                jobs={jobs}
+                                filteredJobs={filteredJobs}
+                                handleFilterChange={handleFilterChange}
+                                handleLocationChange={handleLocationChange}
+                                handleJobClick={handleJobClick}
+                                error={error}
+                                isLoading={isLoading}
+                                hasMore={hasMore}
+                                onLoadMore={handleLoadMore}
+                            />
+                        } 
+                    />
                     {/* Redirect /post-job to the landing page */}
                     <Route path="/post-job" element={<Navigate to="/post-job/landing" replace />} />
                     <Route path="/post-job/landing" element={<PostJobLanding />} />

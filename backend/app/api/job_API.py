@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from ..core.database import get_db_session
 from ..models.job_model import Job
-from ..schemas.job_schema import JobCreate, JobResponse
+from ..schemas.job_schema import JobCreate, JobResponse, PaginatedJobResponse
 from ..services.theirstack_api import sync_jobs
 from ..utils.location_utils import get_coordinates_from_zip as get_coordinates, calculate_distance
 import markdown
@@ -45,19 +45,33 @@ def read_job(job_id: int, db: Session = Depends(get_db_session)):
         raise HTTPException(status_code=404, detail="Job not found")
     return job
 
-@router.get("/", response_model=list[JobResponse])
-def read_jobs(db: Session = Depends(get_db_session)):
+@router.get("/", response_model=PaginatedJobResponse)
+def read_jobs(
+    skip: int = Query(0, description="Number of jobs to skip"),
+    limit: int = Query(25, description="Number of jobs to return"),
+    db: Session = Depends(get_db_session)
+):
     try:
+        # Get total count for pagination
+        total_count = db.query(Job).count()
+        
         # Order by external_id IS NOT NULL (puts NULL values first), then by posted_date DESC
         jobs = db.query(Job).order_by(
             Job.external_id.is_not(None),  # NULL (manually posted) jobs first
             Job.posted_date.desc()  # Then by most recent
-        ).all()
-        print(f"\nFetching all jobs from database:")
+        ).offset(skip).limit(limit).all()
+        
+        print(f"\nFetching jobs from database:")
+        print(f"Skip: {skip}, Limit: {limit}")
         print(f"Found {len(jobs)} jobs")
-        for job in jobs:
-            print(f"- {job.job_title} ({job.job_function})")
-        return jobs
+        
+        # Return jobs with pagination metadata
+        return {
+            "items": jobs,
+            "total": total_count,
+            "skip": skip,
+            "limit": limit
+        }
     except Exception as e:
         print(f"Error fetching jobs: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

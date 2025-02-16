@@ -18,4 +18,4 @@ class CompanyResponse(CompanyBase):
     jobs: Optional[List[JobResponse]] = []
 
     class Config:
-        orm_mode = True 
+        from_attributes = True 

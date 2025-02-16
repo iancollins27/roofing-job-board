@@ -1,2 +1,2 @@
 # TODO: Modify this Procfile to fit your needs
-web: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+web: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1 --timeout-keep-alive 75 --limit-max-requests 0 --backlog 256

@@ -43,8 +43,7 @@ class JobResponse(JobCreate):
     postal_code: Optional[str] = None  # Make it optional in responses
 
     class Config:
-        orm_mode = True
-        from_attributes = True  # For newer Pydantic versions
+        from_attributes = True
 
 class PaginatedJobResponse(BaseModel):
     items: List[JobResponse]
@@ -53,5 +52,4 @@ class PaginatedJobResponse(BaseModel):
     limit: int
 
     class Config:
-        orm_mode = True
         from_attributes = True

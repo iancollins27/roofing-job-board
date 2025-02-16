@@ -107,14 +107,19 @@ if db_url:
         engine = create_engine(
             db_url,
             connect_args={
-                "connect_timeout": 30,  # Increased timeout for Render
-                "application_name": "roofing-job-board",  # Identify our application
-                "sslmode": "require"  # Required for Render's PostgreSQL
+                "connect_timeout": 60,  # Increased timeout for Render
+                "application_name": "roofing-job-board",
+                "sslmode": "require",
+                "keepalives": 1,  # Enable keepalive
+                "keepalives_idle": 30,  # Send keepalive every 30 seconds
+                "keepalives_interval": 10,  # Retry keepalive every 10 seconds
+                "keepalives_count": 5  # Retry 5 times before considering connection dead
             },
-            pool_size=5,  # Limit pool size
-            max_overflow=10,  # Maximum number of connections that can be created beyond pool_size
-            pool_timeout=30,  # Timeout for getting a connection from the pool
+            pool_size=3,  # Reduced pool size for Render's free tier
+            max_overflow=5,  # Reduced max overflow
+            pool_timeout=60,  # Increased pool timeout
             pool_recycle=1800,  # Recycle connections after 30 minutes
+            pool_pre_ping=True,  # Enable connection testing before use
             echo=True  # Log SQL commands
         )
         print("Engine created successfully")

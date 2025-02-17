@@ -62,7 +62,7 @@ const App = () => {
         try {
             console.log("Fetching jobs from API...");
             const skip = pageToFetch * JOBS_PER_PAGE;
-            const response = await fetch(`http://localhost:8000/api/v1/jobs?skip=${skip}&limit=${JOBS_PER_PAGE}`);
+            const response = await fetch(`https://your-render-backend-url.onrender.com/api/v1/jobs?skip=${skip}&limit=${JOBS_PER_PAGE}`);
             console.log("Response status:", response.status);
             
             if (!response.ok) {

@@ -107,7 +107,7 @@ const PostJobForm = () => {
     setIsSubmitting(true);
     try {
       // First, create payment intent
-      const paymentResponse = await fetch('http://localhost:8000/api/v1/payments/create-intent', {
+      const paymentResponse = await fetch('https://your-render-backend-url.onrender.com/api/v1/payments/create-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

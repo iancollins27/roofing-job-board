@@ -62,12 +62,14 @@ def fetch_roofing_jobs(page: int = 0, limit: int = 5) -> List[Dict[Any, Any]]:
             )
             
             print(f"\nResponse status: {response.status_code}")
+            print(f"\nFull response text: {response.text}")
             
             if response.status_code == 200:
                 data = response.json()
-                print(f"Raw API response: {data}")
+                print(f"\nRaw API response data: {data}")
                 jobs = data.get('data', [])
                 print(f"Received {len(jobs)} jobs")
+                print(f"First job title: {jobs[0]['job_title'] if jobs else 'No jobs'}")
                 return jobs
             else:
                 print(f"Error response: {response.text}")
@@ -191,11 +193,22 @@ def sync_jobs():
     session = next(get_db_session())
     try:
         print("\nStarting job sync...")
-        jobs_data = fetch_roofing_jobs(limit=3)  # Changed limit to 1 for testing
-        print(f"\nFetched {len(jobs_data)} jobs from TheirStack")
+        
+        # Fetch multiple pages until we get enough jobs
+        all_jobs_data = []
+        page = 0
+        while len(all_jobs_data) < 15:  # Changed from 75 to 15
+            jobs_data = fetch_roofing_jobs(page=page, limit=15)  # Changed limit from 25 to 15
+            if not jobs_data:  # If we get no jobs, break
+                break
+            all_jobs_data.extend(jobs_data)
+            page += 1
+            print(f"\nFetched page {page}, total jobs so far: {len(all_jobs_data)}")
+        
+        print(f"\nFetched total of {len(all_jobs_data)} jobs from TheirStack")
         
         synced_count = 0
-        for job_data in jobs_data:
+        for job_data in all_jobs_data:
             try:
                 mapped_data = map_job_data(job_data)
                 print(f"\nProcessing job: {mapped_data['job_title']}")

@@ -9,6 +9,8 @@ import socket
 import subprocess
 import sys
 import time
+from sqlalchemy.exc import OperationalError
+from sqlalchemy import inspect
 
 def test_connection(host, port):
     try:
@@ -155,8 +157,23 @@ def init_db():
     """Create database tables"""
     try:
         print("\nAttempting to create database tables...")
+        # Test the connection first
+        with engine.connect() as connection:
+            print("Database connection successful")
+            
+        # Create tables
         Base.metadata.create_all(bind=engine)
         print("Database tables created successfully")
+        
+        # Verify tables were created
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
+        print(f"Available tables: {', '.join(tables)}")
+        
+    except OperationalError as e:
+        print(f"Database connection error: {str(e)}")
+        print("Please check your DATABASE_URL environment variable and database connectivity")
+        raise
     except Exception as e:
-        print(f"\nError creating database tables: {str(e)}")
+        print(f"Error initializing database: {str(e)}")
         raise

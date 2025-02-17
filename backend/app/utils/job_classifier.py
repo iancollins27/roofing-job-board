@@ -1,19 +1,22 @@
 import os
 from openai import OpenAI
+from ..core.config import settings
 
 def classify_job_function(job_title: str) -> str | None:
     """
     Classifies a job title into predefined categories using OpenAI's API.
     Returns None if classification fails.
     """
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = settings.OPENAI_API_KEY
     if not api_key:
-        print("OPENAI_API_KEY not found in environment variables")
+        print("OPENAI_API_KEY not found in settings")
         return None
 
     try:
         # Initialize the client with the API key
         client = OpenAI(api_key=api_key)
+        
+        print(f"Classifying job title: {job_title}")  # Debug log
         
         # Create the chat completion using the new API syntax
         response = client.chat.completions.create(
@@ -37,7 +40,12 @@ def classify_job_function(job_title: str) -> str | None:
             temperature=0
         )
         
-        return response.choices[0].message.content.strip()
+        classification = response.choices[0].message.content.strip()
+        print(f"Classification result: {classification}")  # Debug log
+        # Convert to lowercase to match the enum values
+        classification = classification.lower()
+        print(f"Converted to lowercase: {classification}")  # Debug log
+        return classification
     
     except Exception as e:
         print(f"Error classifying job title:")

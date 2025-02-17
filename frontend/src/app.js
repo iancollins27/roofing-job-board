@@ -62,7 +62,7 @@ const App = () => {
         try {
             console.log("Fetching jobs from API...");
             const skip = pageToFetch * JOBS_PER_PAGE;
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/jobs?skip=${skip}&limit=${JOBS_PER_PAGE}`);
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/jobs?skip=${skip}&limit=${JOBS_PER_PAGE}`);
             console.log("Response status:", response.status);
             
             if (!response.ok) {
@@ -122,7 +122,7 @@ const App = () => {
             } else {
                 const { zipCode, radius } = locationFilter;
                 const response = await fetch(
-                    `http://localhost:8000/api/v1/jobs/search/location?zip_code=${zipCode}&radius=${radius}`
+                    `${process.env.REACT_APP_API_URL}/api/v1/jobs/search/location?zip_code=${zipCode}&radius=${radius}`
                 );
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);

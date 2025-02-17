@@ -208,3 +208,35 @@ def debug_job_coordinates(db: Session = Depends(get_db_session)):
             "longitude": job.longitude
         })
     return {"jobs": job_info}
+
+@router.post("/reclassify-all")
+def reclassify_all_jobs(db: Session = Depends(get_db_session)):
+    """Reclassify all jobs in the database using the OpenAI classifier"""
+    try:
+        print("\nStarting job reclassification...")
+        jobs = db.query(Job).all()
+        total_jobs = len(jobs)
+        reclassified_count = 0
+        
+        for job in jobs:
+            try:
+                from ..utils.job_classifier import classify_job_function
+                new_classification = classify_job_function(job.job_title)
+                if new_classification:
+                    job.job_function = new_classification
+                    reclassified_count += 1
+                    print(f"Reclassified job {job.id} ({job.job_title}) as {new_classification}")
+            except Exception as e:
+                print(f"Error classifying job {job.id}: {str(e)}")
+                continue
+        
+        db.commit()
+        return {
+            "message": f"Successfully reclassified {reclassified_count} out of {total_jobs} jobs",
+            "total_jobs": total_jobs,
+            "reclassified_count": reclassified_count
+        }
+    except Exception as e:
+        db.rollback()
+        print(f"Error during reclassification: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

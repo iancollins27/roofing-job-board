@@ -52,10 +52,16 @@ def read_jobs(
     db: Session = Depends(get_db_session)
 ):
     try:
+        print("\nAttempting to fetch jobs from database...")
+        print(f"Database session: {db}")
+        
         # Get total count for pagination
+        print("Getting total count...")
         total_count = db.query(Job).count()
+        print(f"Total count: {total_count}")
         
         # Order by external_id IS NOT NULL (puts NULL values first), then by posted_date DESC
+        print("Querying jobs...")
         jobs = db.query(Job).order_by(
             Job.external_id.is_not(None),  # NULL (manually posted) jobs first
             Job.posted_date.desc()  # Then by most recent
@@ -73,8 +79,12 @@ def read_jobs(
             "limit": limit
         }
     except Exception as e:
-        print(f"Error fetching jobs: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"\nDetailed error in read_jobs:")
+        print(f"Error type: {type(e).__name__}")
+        print(f"Error message: {str(e)}")
+        import traceback
+        print(f"Traceback:\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @router.post("/sync")
 async def sync_theirstack_jobs():
@@ -144,46 +154,38 @@ async def cleanup_and_resync(db: Session = Depends(get_db_session)):
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/search/location", response_model=list[JobResponse])
+@router.get("/search/location")
 def search_jobs_by_location(
-    zip_code: str = Query(..., description="ZIP code to search from"),
-    radius: float = Query(150.0, description="Search radius in miles"),
+    zip_code: str = Query(..., description="ZIP code to search around"),
+    radius: float = Query(25, description="Search radius in miles"),
     db: Session = Depends(get_db_session)
 ):
-    """Search for jobs within a specified radius of a ZIP code."""
-    print(f"\nSearching for jobs near {zip_code} within {radius} miles")
-    
-    # Get coordinates for the search ZIP code
-    search_coords = get_coordinates(zip_code)
-    if not search_coords:
-        raise HTTPException(status_code=400, detail="Invalid ZIP code")
-    
-    search_lat, search_lon = search_coords
-    print(f"Search coordinates: ({search_lat}, {search_lon})")
-    
-    # Query jobs with coordinates
-    jobs = db.query(Job).filter(
-        Job.latitude.isnot(None),
-        Job.longitude.isnot(None)
-    ).all()
-    
-    print(f"Found {len(jobs)} jobs with coordinates")
-    
-    # Filter jobs by distance using stored coordinates
-    nearby_jobs = []
-    for job in jobs:
-        distance = calculate_distance(
-            search_lat, search_lon,
-            job.latitude, job.longitude
-        )
-        if distance <= radius:
-            print(f"Job '{job.job_title}' is {distance:.1f} miles away - including")
-            nearby_jobs.append(job)
-        else:
-            print(f"Job '{job.job_title}' is {distance:.1f} miles away - too far")
-    
-    print(f"Found {len(nearby_jobs)} jobs within {radius} miles")
-    return nearby_jobs
+    try:
+        # Get coordinates for the search ZIP code
+        search_coords = get_coordinates(zip_code)
+        if not search_coords:
+            raise HTTPException(status_code=400, detail="Invalid ZIP code")
+        
+        search_lat, search_lon = search_coords
+        
+        # Get all jobs
+        jobs = db.query(Job).all()
+        
+        # Filter jobs by distance
+        jobs_with_distance = []
+        for job in jobs:
+            if job.latitude and job.longitude:
+                distance = calculate_distance(
+                    search_lat, search_lon,
+                    job.latitude, job.longitude
+                )
+                if distance <= radius:
+                    jobs_with_distance.append(job)
+        
+        return jobs_with_distance
+    except Exception as e:
+        print(f"Error searching jobs by location: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/debug/coordinates")
 def debug_job_coordinates(db: Session = Depends(get_db_session)):

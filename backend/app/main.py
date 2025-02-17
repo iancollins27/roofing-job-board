@@ -25,10 +25,12 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://www.findroofingjobs.com"],  # Specify your frontend domain
+    allow_origins=["https://www.findroofingjobs.com", "http://localhost:3000"],  # Add localhost for development
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=3600,  # Cache preflight requests for 1 hour
 )
 
 # Include the user and job routers

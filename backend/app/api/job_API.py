@@ -53,25 +53,23 @@ def read_jobs(
 ):
     try:
         print("\nAttempting to fetch jobs from database...")
-        print(f"Database session: {db}")
         
         # Get total count for pagination
-        print("Getting total count...")
         total_count = db.query(Job).count()
         print(f"Total count: {total_count}")
         
-        # Order by external_id IS NOT NULL (puts NULL values first), then by posted_date DESC
-        print("Querying jobs...")
-        jobs = db.query(Job).order_by(
-            Job.external_id.is_not(None),  # NULL (manually posted) jobs first
-            Job.posted_date.desc()  # Then by most recent
-        ).offset(skip).limit(limit).all()
+        # Simplified query - just order by id
+        jobs = db.query(Job).order_by(Job.id.desc()).offset(skip).limit(limit).all()
         
-        print(f"\nFetching jobs from database:")
-        print(f"Skip: {skip}, Limit: {limit}")
         print(f"Found {len(jobs)} jobs")
         
-        # Return jobs with pagination metadata
+        # Debug information about jobs
+        for job in jobs:
+            print(f"Job ID: {job.id}")
+            print(f"Title: {job.job_title}")
+            print(f"Function: {job.job_function}")
+            print("---")
+        
         return {
             "items": jobs,
             "total": total_count,
@@ -84,6 +82,16 @@ def read_jobs(
         print(f"Error message: {str(e)}")
         import traceback
         print(f"Traceback:\n{traceback.format_exc()}")
+        
+        # Try to get more information about the jobs that might be causing issues
+        try:
+            all_jobs = db.query(Job).all()
+            print(f"\nTotal jobs in database: {len(all_jobs)}")
+            for job in all_jobs:
+                print(f"Job {job.id}: {job.job_title} (function: {job.job_function})")
+        except Exception as inner_e:
+            print(f"Error while trying to debug: {str(inner_e)}")
+        
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @router.post("/sync")

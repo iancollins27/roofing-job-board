@@ -6,12 +6,11 @@ from datetime import datetime
 from enum import Enum
 
 class JobFunction(str, Enum):
-    SALES = "Sales"
-    INSTALLATION = "Installation"
-    PROJECT_MANAGEMENT = "Project Management"
-    GENERAL_LABOR = "General Labor"
-    ADMINISTRATIVE = "Administrative"
-    OTHER = "Other"
+    SALES = "sales"
+    LABOR = "labor"
+    PRODUCTION = "production"
+    MANAGEMENT = "management"
+    OTHER = "other"  # Added for backward compatibility
 
 class JobCreate(BaseModel):
     external_id: Optional[str] = None
@@ -36,14 +35,33 @@ class JobCreate(BaseModel):
             raise ValueError('ZIP code must be 5 digits')
         return v
 
-class JobResponse(JobCreate):
+class JobResponse(BaseModel):
     id: Optional[int] = None
-    posted_date: Optional[Union[datetime, str]] = None  # Allow both datetime and string
+    external_id: Optional[str] = None
+    company_id: Optional[int] = None
+    job_title: Optional[str] = None
+    description: Optional[str] = None
+    location: Optional[str] = None
+    postal_code: Optional[str] = None
+    employment_type: Optional[str] = None
+    remote_type: Optional[str] = None
+    salary_range: Optional[str] = None
+    application_email: Optional[str] = None
+    application_link: Optional[str] = None
+    company_url: Optional[str] = None
+    source_url: Optional[str] = None
+    job_function: Optional[str] = None  # Changed from JobFunction to str to be more lenient
+    posted_date: Optional[Union[datetime, str]] = None
     is_active: Optional[bool] = None
-    postal_code: Optional[str] = None  # Make it optional in responses
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
 
     class Config:
         from_attributes = True
+        # Allow extra fields in case database has fields not in schema
+        extra = "allow"
 
 class PaginatedJobResponse(BaseModel):
     items: List[JobResponse]
